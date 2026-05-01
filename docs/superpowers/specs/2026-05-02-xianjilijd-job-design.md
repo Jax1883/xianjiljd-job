@@ -17,8 +17,8 @@
 ## 2. 技术栈
 
 - Spring Boot 2.7.x
-- JDK 8
-- Maven
+- JDK 21（Spring Boot 2.7 在 JDK 17+ 已被验证可运行；本机已装 21）
+- Maven 3.5+
 - MyBatis Plus 3.5.x
 - MySQL Connector 8.x
 - Lombok（简化实体类）
