@@ -528,7 +528,7 @@ git commit -m "feat: add OutOrderBack and ReceiptNoteBack entities with mappers"
 ```java
 package com.xianjilijd.job.dto;
 
-import com.fasterxml.jackson.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
@@ -605,7 +605,7 @@ public class QueryOrderBackResp {
 ```java
 package com.xianjilijd.job.dto;
 
-import com.fasterxml.jackson.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
