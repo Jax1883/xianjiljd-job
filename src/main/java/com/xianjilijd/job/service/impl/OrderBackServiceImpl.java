@@ -2,8 +2,10 @@ package com.xianjilijd.job.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.xianjilijd.job.common.BizException;
 import com.xianjilijd.job.common.OrderTypeEnum;
+import com.xianjilijd.job.common.PageResult;
 import com.xianjilijd.job.dto.ActivateOrderBackReq;
 import com.xianjilijd.job.dto.QueryOrderBackReq;
 import com.xianjilijd.job.dto.QueryOrderBackResp;
@@ -33,15 +35,22 @@ public class OrderBackServiceImpl implements OrderBackService {
     private final ReceiptNoteBackMapper receiptNoteBackMapper;
 
     @Override
-    public List<QueryOrderBackResp> query(QueryOrderBackReq req) {
+    public PageResult<QueryOrderBackResp> query(QueryOrderBackReq req) {
         OrderTypeEnum type = parseOrderType(req.getOrderType());
         List<String> codes = sanitizeCodes(req.getCode());
 
+        int pageNum = req.getPageNum() < 1 ? 1 : req.getPageNum();
+        int pageSize = req.getPageSize() < 1 ? 10 : req.getPageSize();
+        Page<?> page = new Page<>(pageNum, pageSize);
+
         if (type == OrderTypeEnum.RECEIPT) {
             LambdaQueryWrapper<ReceiptNoteBack> wrapper = new LambdaQueryWrapper<>();
-            wrapper.in(ReceiptNoteBack::getReceiptCode, codes)
-                   .orderByDesc(ReceiptNoteBack::getId);
-            return receiptNoteBackMapper.selectList(wrapper).stream()
+            if (codes != null) {
+                wrapper.in(ReceiptNoteBack::getReceiptCode, codes);
+            }
+            wrapper.orderByDesc(ReceiptNoteBack::getId);
+            Page<ReceiptNoteBack> result = receiptNoteBackMapper.selectPage((Page<ReceiptNoteBack>) page, wrapper);
+            List<QueryOrderBackResp> records = result.getRecords().stream()
                     .map(r -> QueryOrderBackResp.builder()
                             .id(r.getId())
                             .responseCode(r.getReceiptCode())
@@ -51,11 +60,15 @@ public class OrderBackServiceImpl implements OrderBackService {
                             .orderType(req.getOrderType())
                             .build())
                     .collect(Collectors.toList());
+            return new PageResult<>(result.getTotal(), result.getCurrent(), result.getSize(), records);
         } else {
             LambdaQueryWrapper<OutOrderBack> wrapper = new LambdaQueryWrapper<>();
-            wrapper.in(OutOrderBack::getOutOrderCode, codes)
-                   .orderByDesc(OutOrderBack::getId);
-            return outOrderBackMapper.selectList(wrapper).stream()
+            if (codes != null) {
+                wrapper.in(OutOrderBack::getOutOrderCode, codes);
+            }
+            wrapper.orderByDesc(OutOrderBack::getId);
+            Page<OutOrderBack> result = outOrderBackMapper.selectPage((Page<OutOrderBack>) page, wrapper);
+            List<QueryOrderBackResp> records = result.getRecords().stream()
                     .map(r -> QueryOrderBackResp.builder()
                             .id(r.getId())
                             .responseCode(r.getOutOrderCode())
@@ -65,6 +78,7 @@ public class OrderBackServiceImpl implements OrderBackService {
                             .orderType(req.getOrderType())
                             .build())
                     .collect(Collectors.toList());
+            return new PageResult<>(result.getTotal(), result.getCurrent(), result.getSize(), records);
         }
     }
 
@@ -102,7 +116,7 @@ public class OrderBackServiceImpl implements OrderBackService {
 
     private List<String> sanitizeCodes(List<String> raw) {
         if (raw == null || raw.isEmpty()) {
-            throw new BizException("code 不能为空");
+            return null;
         }
         Set<String> seen = new LinkedHashSet<>();
         for (String c : raw) {
@@ -111,7 +125,7 @@ public class OrderBackServiceImpl implements OrderBackService {
             if (!s.isEmpty()) seen.add(s);
         }
         if (seen.isEmpty()) {
-            throw new BizException("code 不能为空");
+            return null;
         }
         if (seen.size() > MAX_QUERY_CODES) {
             throw new BizException("code 数量超过上限 " + MAX_QUERY_CODES);

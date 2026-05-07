@@ -22,6 +22,10 @@ public class QueryOrderBackReq {
     @JsonDeserialize(using = StringOrListDeserializer.class)
     private List<String> code;
 
+    private int pageNum = 1;
+
+    private int pageSize = 10;
+
     public static class StringOrListDeserializer extends JsonDeserializer<List<String>> {
         @Override
         public List<String> deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {

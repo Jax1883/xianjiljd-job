@@ -1,6 +1,7 @@
 package com.xianjilijd.job.controller;
 
 import com.xianjilijd.job.common.ApiResponse;
+import com.xianjilijd.job.common.PageResult;
 import com.xianjilijd.job.dto.ActivateOrderBackReq;
 import com.xianjilijd.job.dto.QueryOrderBackReq;
 import com.xianjilijd.job.dto.QueryOrderBackResp;
@@ -12,9 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -25,12 +24,12 @@ public class OrderBackController {
     private final OrderBackService orderBackService;
 
     @PostMapping("/queryOrderBack")
-    public ApiResponse<List<QueryOrderBackResp>> queryOrderBack(@Valid @RequestBody QueryOrderBackReq req) {
-        List<QueryOrderBackResp> rows = orderBackService.query(req);
-        if (rows.isEmpty()) {
-            return ApiResponse.success("无数据，请人工核实", Collections.emptyList());
+    public ApiResponse<PageResult<QueryOrderBackResp>> queryOrderBack(@Valid @RequestBody QueryOrderBackReq req) {
+        PageResult<QueryOrderBackResp> result = orderBackService.query(req);
+        if (result.getTotal() == 0) {
+            return ApiResponse.success("无数据，请人工核实", result);
         }
-        return ApiResponse.success(rows);
+        return ApiResponse.success(result);
     }
 
     @PostMapping("/activateOrderBack")
